@@ -54,9 +54,9 @@ Input:
 * pend: passed to self.query_structure_info
 
 Output:
-* disorder: 12 element string list initialized with all elements as 'NA'
-* ss: 12 element string list initialized with all elements as 'NA'
-* asa: 3 element string list initialized with all elements as 'NA'
+* disorder: 12 element list initialized with all elements as 'NA'
+* ss: 12 element list initialized with all elements as 'NA'
+* asa: 3 element list initialized with all elements as 'NA'
 
 Steps:
 * get structure info using self.db.query_structure()
