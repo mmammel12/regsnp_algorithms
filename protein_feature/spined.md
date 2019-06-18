@@ -18,65 +18,141 @@ Steps:
 
 ### query_structure_info
 Goals:
-* 
+* query the db for information about the structure
 
 Input:
-*
+* transcript_id
+* pstart: used with pend to find length and for how much to query from the db
+* pend: used with pstart to find length and for how much to query from the db
+* structure_info: self.db.query_structure(transcript_id)
 
 Output:
-* 
+* result of the query as a dict
 
 Steps:
-* 
+* create the query_info dict
+* key, value pairs:
+  * 'transcript_id': structure_info['transcript_id']
+  * 'aa': structure_info['aa'][pstart:pend]
+  * 'beta_sheet': structure_info['beta_sheet'][pstart:pend]
+  * 'random_coil': structure_info['random_coil'][pstart:pend]
+  * 'alpha_helix': structure_info['alpha_helix'][pstart:pend]
+  * 'asa': structure_info['asa'][pstart:pend]
+  * 'disorder': structure_info['disorder'][pstart:pend]
+  * 'length': pend - pstart
+* if not 'disorder' (from dict)
+  * clear query_info
+* return query_info
 
 ### cal_spined
 Goals:
-* 
+* use self.query_structure_info() to get structure data then fill the output lists
 
 Input:
-*
+* transcript_id
+* pstart: passed to self.query_structure_info
+* pend: passed to self.query_structure_info
 
 Output:
-* 
+* disorder: 12 element string list initialized with all elements as 'NA'
+* ss: 12 element string list initialized with all elements as 'NA'
+* asa: 3 element string list initialized with all elements as 'NA'
 
 Steps:
-* 
+* get structure info using self.db.query_structure()
+* initialize output lists with all elements as 'NA'
+* if all 3 input parameters are not None
+  * call self.query_structure_info() passing in required params, store result in query_result
+  * if query_result is not empty
+    * set disorder to store result of self._cal_disorder(query_result)
+    * set ss to store result of self._cal_ss(query_result)
+    * set asa to store result of self._cal_asa(query_result)
+  * else
+    * logger debug about region only containing stop codon
+* return output lists
 
 ### _cal_disorder
 Goals:
-* 
+* calculate min, max, mean, mean structure region, mean disorder region, switch num, min disorder length, max disorder length, mean disorder length, min structured length, max structured length, mean structured length
 
 Input:
-*
+* structure_info
 
 Output:
-* 
+* min_disorder
+* max_disorder
+* mean_disorder
+* mean_disorder_structured_region
+* mean_disorder_disorder_region
+* switch_num
+* min_disorder_len
+* max_disorder_len
+* mean_disorder_len
+* min_structured_len
+* max_structured_len
+* mean_structured_len
 
 Steps:
-* 
+* create numpy array called disorder with disorder info from structure_info
+* get min, max, mean, mean for structure region, mean for disorder region using numpy
+* create disorder_len and structure_len empty lists
+* initialize current_disorder_len, current_structure_len, and switch_num to 0.0
+* loop through each element in disorder
+  * if element < 0.5
+    * if current_disorder_len > 0
+      * append current_disorder_len to disorder_len
+      * reset current_disorder_len to 0.0
+      * increment switch_num
+    * increment current_structured_len
+  * elif element > 0.5
+    * if current_structured_len > 0
+      * append current_structure_len to structure_len
+      * reset current_structure_len to 0.0
+      * increment switch_num
+    * increment current_disorder_len
+* check final status of current_disorder_len and current_structured_len
+  * append to appropriate list if > 0
+* assert switch_num == length of disorder_len + length of structured_len - 1
+* assign min_disorder_len, max_disorder_len, mean_disorder_len, min_structured_len, max_structured_len, mean_structured_len
+  * check against appropriate function (min() for min, max() for max, numpy.mean() for mean) if [disorder_len for first 3/ structured_len for last 3] else 0.0
+* return all output values
 
 ### _cal_ss
 Goals:
-* 
+* calculate min, max, mean for:
+  * predicted_ss
+  * alpha_helix
+  * beta_sheet
+  * random_coil
 
 Input:
-*
+* structure_info
 
 Output:
-* 
+* min, max, mean for:
+  * predicted_ss
+  * alpha_helix
+  * beta_sheet
+  * random_coil
 
 Steps:
-* 
+* create numpy arrays for alpha_helix, beta_sheet, random_coil from structure_info
+* create ss_combine from numpy.vstack with alpha_helix, beta_sheet, random_coil passed in as a set
+* assert ss_combine.shape[0] == 3
+* calculate predicted_ss using numpy.max(ss_combine, axis=0)
+* assert length of predicted_ss is the same as length of alpha_helix
+* calculate and return all min, max, mean values
 
 ### _cal_asa
 Goals:
-* 
+* calculate and return min, max, mean values for asa
 
 Input:
-*
+* structure_info
 
 Output:
-* 
+* min, max, mean values for asa
 
 Steps:
-* 
+* create numpy array for asa
+* calculate and return min, max, mean values
